@@ -59,6 +59,37 @@ func TestDuplicateLine(t *testing.T) {
 	require.NoError(t, printer.Fprint(os.Stdout, fset, newAst))
 }
 
+func TestAddCodeToAST(t *testing.T) {
+	fset, node := parseExampleFile(t)
+
+	newStmt := &ast.ExprStmt{
+		X: &ast.CallExpr{
+			Fun: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: "fmt"},
+				Sel: &ast.Ident{Name: "Println"},
+			},
+			Args: []ast.Expr{
+				&ast.BasicLit{
+					ValuePos: 0,
+					Kind:     token.STRING,
+					Value:    `"Hello, code generation!"`,
+				},
+			},
+		},
+	}
+
+	addMyStmt := func(c *astutil.Cursor) bool {
+		if funcDecl, ok := c.Node().(*ast.FuncDecl); ok {
+			funcDecl.Body.List = append([]ast.Stmt{newStmt}, funcDecl.Body.List...)
+		}
+		return true
+	}
+	newAst := astutil.Apply(node, addMyStmt, nil)
+
+	//ast.Print(fset, newAst)
+	require.NoError(t, printer.Fprint(os.Stdout, fset, newAst))
+}
+
 func parseExampleFile(t *testing.T) (*token.FileSet, *ast.File) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, "foo.go", nil, parser.ParseComments)
