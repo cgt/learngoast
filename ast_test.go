@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestAst(t *testing.T) {
+func TestRenameFunction(t *testing.T) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, "foo.go", nil, parser.ParseComments)
 	require.NoError(t, err)
