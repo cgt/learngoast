@@ -15,9 +15,7 @@ import (
 )
 
 func TestRenameFunction(t *testing.T) {
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, "foo.go", nil, parser.ParseComments)
-	require.NoError(t, err)
+	fset, node := parseExampleFile(t)
 
 	assert.Equal(t, "learngoast", node.Name.Name)
 
@@ -44,9 +42,7 @@ func TestRenameFunction(t *testing.T) {
 }
 
 func TestDuplicateLine(t *testing.T) {
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, "foo.go", nil, parser.ParseComments)
-	require.NoError(t, err)
+	fset, node := parseExampleFile(t)
 
 	duplicateLine := func(c *astutil.Cursor) bool {
 		exprStmt, ok := c.Node().(*ast.ExprStmt)
@@ -61,4 +57,11 @@ func TestDuplicateLine(t *testing.T) {
 
 	//require.NoError(t, ast.Print(fset, newAst))
 	require.NoError(t, printer.Fprint(os.Stdout, fset, newAst))
+}
+
+func parseExampleFile(t *testing.T) (*token.FileSet, *ast.File) {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, "foo.go", nil, parser.ParseComments)
+	require.NoError(t, err)
+	return fset, node
 }
