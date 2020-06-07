@@ -10,6 +10,7 @@ import (
 	"go/token"
 	"golang.org/x/tools/go/ast/astutil"
 	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -40,4 +41,24 @@ func TestRenameFunction(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, string(goldenMaster), buf.String())
+}
+
+func TestDuplicateLine(t *testing.T) {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, "foo.go", nil, parser.ParseComments)
+	require.NoError(t, err)
+
+	duplicateLine := func(c *astutil.Cursor) bool {
+		exprStmt, ok := c.Node().(*ast.ExprStmt)
+		if !ok {
+			return true
+		}
+		c.InsertAfter(exprStmt)
+		return true
+	}
+	newAst := astutil.Apply(node, duplicateLine, nil)
+	require.NotNil(t, newAst)
+
+	//require.NoError(t, ast.Print(fset, newAst))
+	require.NoError(t, printer.Fprint(os.Stdout, fset, newAst))
 }
