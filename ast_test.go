@@ -86,8 +86,35 @@ func TestAddCodeToAST(t *testing.T) {
 	}
 	newAst := astutil.Apply(node, addMyStmt, nil)
 
+	ast.Print(fset, newAst)
+	//require.NoError(t, printer.Fprint(os.Stdout, fset, newAst))
+}
+
+func TestReplaceFunctionCallWithSomething(t *testing.T) {
+	fset, node := parseExampleFile(t)
+	require.NoError(t, printer.Fprint(os.Stderr, fset, node))
+
+	funcToInline, ok := node.Scope.Lookup("IsApplesauce").Decl.(*ast.FuncDecl)
+	require.True(t, ok, "type assertion failed")
+
+	replaceFunctionCall := func(c *astutil.Cursor) bool {
+		callExpr, ok := c.Node().(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		calledFunc, ok := callExpr.Fun.(*ast.Ident)
+		if !ok || calledFunc.Name != "IsApplesauce" {
+			return true
+		}
+		stmtToInline := funcToInline.Body.List[0].(*ast.ReturnStmt)
+		c.Replace(stmtToInline.Results[0])
+		return true
+	}
+	newAst := astutil.Apply(node, replaceFunctionCall, nil)
+
 	//ast.Print(fset, newAst)
 	require.NoError(t, printer.Fprint(os.Stdout, fset, newAst))
+	//spew.Dump(node.Scope.Lookup("IsApplesauce"))
 }
 
 func parseExampleFile(t *testing.T) (*token.FileSet, *ast.File) {
