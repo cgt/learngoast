@@ -1,0 +1,13 @@
+package learngoast
+
+import "fmt"
+
+func renamed(x string) bool {
+	return x == "applesauce"
+}
+
+func PrintIfApplesauce(x string) {
+	if renamed(x) {
+		fmt.Println("It is applesauce!")
+	}
+}

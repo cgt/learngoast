@@ -1,6 +1,7 @@
 package learngoast
 
 import (
+	"bytes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go/ast"
@@ -8,7 +9,7 @@ import (
 	"go/printer"
 	"go/token"
 	"golang.org/x/tools/go/ast/astutil"
-	"os"
+	"io/ioutil"
 	"testing"
 )
 
@@ -31,5 +32,12 @@ func TestAst(t *testing.T) {
 	}
 	newAst := astutil.Apply(node, rename, nil)
 	require.NotNil(t, newAst)
-	require.NoError(t, printer.Fprint(os.Stdout, fset, newAst))
+
+	var buf bytes.Buffer
+	require.NoError(t, printer.Fprint(&buf, fset, newAst))
+
+	goldenMaster, err := ioutil.ReadFile("foo.go.golden")
+	require.NoError(t, err)
+
+	assert.Equal(t, string(goldenMaster), buf.String())
 }
